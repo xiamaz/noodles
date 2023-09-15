@@ -269,7 +269,7 @@ impl TryFrom<(FileFormat, &str)> for Record {
                 let v = match value {
                     parser::Value::String(s) => Value::from(s),
                     parser::Value::Struct(mut fields) => {
-                        let id = remove_field(&mut fields, ID).ok_or_else(|| {
+                        let id = remove_field_or_first(&mut fields, ID).ok_or_else(|| {
                             ParseError::InvalidOther(
                                 k.clone(),
                                 map::other::ParseError::MissingField(map::other::tag::ID),
@@ -287,6 +287,12 @@ impl TryFrom<(FileFormat, &str)> for Record {
             }
         }
     }
+}
+
+fn remove_field_or_first(fields: &mut Vec<(String, String)>, key: &str) -> Option<String> {
+    let i = fields.iter().position(|(k, _)| k == key).unwrap_or(0);
+    let (_, value) = fields.remove(i);
+    Some(value)
 }
 
 fn remove_field(fields: &mut Vec<(String, String)>, key: &str) -> Option<String> {
